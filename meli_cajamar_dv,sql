@@ -1,0 +1,57 @@
+/*******************************************************************************
+  PROJETO: People Analytics e Logística Operacional - CD Cajamar (DV)
+  OBJETIVO: Criação de banco de dados relacional para unificar dados de cadastro,
+            escalas e turnos operacionais de representantes de logística.
+  TECNOLOGIA: SQL Server (T-SQL)
+  AUTOR: Miguel Dantas
+*******************************************************************************/
+
+-- 1. Criação e inicialização do banco de dados
+USE estudos_analytics;
+GO
+
+-- 2. Garantia de Idempotência (Limpeza de tabelas antigas se existirem)
+DROP TABLE IF EXISTS escalas_turno;
+DROP TABLE IF EXISTS funcionarios_cd;
+GO
+
+-- 3. Criação da tabela dimensional de cadastro de colaboradores
+CREATE TABLE funcionarios_cd (
+    id_func INT PRIMARY KEY,
+    nome VARCHAR(100),
+    setor VARCHAR(50)
+);
+GO
+
+-- 4. Criação da tabela dimensional de escalas e turnos operacionais
+CREATE TABLE escalas_turno (
+    id_func INT,
+    turno VARCHAR(10),
+    escala VARCHAR(10),
+    FOREIGN KEY (id_func) REFERENCES funcionarios_cd(id_func)
+);
+GO
+
+-- 5. Carga de Dados Históricos (Equipe de Devoluções)
+INSERT INTO funcionarios_cd (id_func, nome, sector) VALUES 
+(101, 'Miguel Dantas', 'DV - Eletrônicos'), (102, 'Valquiria Silva', 'DV - Beleza'),
+(103, 'Heitor Almeida', 'DV - Casa'), (104, 'Thales Souza', 'DV - Vestuário'),
+(105, 'Larissa Soares', 'DV - Auto'), (106, 'Camila Silva', 'DV - Operações'),
+(107, 'Joao Souza', 'DV - Eletrônicos'), (108, 'Beatriz Ramos', 'DV - Beleza'),
+(109, 'Lucas Oliveira', 'DV - Casa'), (110, 'Mariana Costa', 'DV - Auto');
+
+INSERT INTO escalas_turno (id_func, turno, escala) VALUES 
+(101, 'T1', '6x2'), (102, 'T1', '6x2'), (103, 'T2', '6x2'), (104, 'T2', '6x2'),
+(105, 'T1', '6x2'), (106, 'T2', '6x2'), (107, 'T1', '6x2'), (108, 'T1', '6x2'),
+(109, 'T2', '6x2'), (110, 'T2', '6x2');
+GO
+
+-- 6. Camada de Consulta Analítica (Modelagem Semântica para o BI)
+SELECT 
+    f.id_func AS [ID Colaborador],
+    f.nome AS [Nome],
+    f.setor AS [Subsetor DV],
+    e.turno AS [Turno],
+    e.escala AS [Escala]
+FROM funcionarios_cd f
+INNER JOIN escalas_turno e ON f.id_func = e.id_func;
